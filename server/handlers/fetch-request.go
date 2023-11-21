@@ -53,7 +53,6 @@ func (h *FetchRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 
 	for i := range ch {
 		if i.bool {
-			w.WriteHeader(http.StatusRequestTimeout)
 			return
 		}
 		priceMessage := formatEvent("confirmation", fmt.Sprintf("%s", i.string))

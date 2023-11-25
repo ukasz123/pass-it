@@ -19,3 +19,9 @@
 
 # Go workspace file
 go.work
+
+# Templ generated files
+*_templ.go
+
+# Output of go tooling
+__debug_bin*

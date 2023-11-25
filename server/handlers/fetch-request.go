@@ -2,14 +2,14 @@ package handlers
 
 import (
 	"context"
-	"fmt"
-	"math/rand"
+	"log"
 	"net/http"
 	"pass-it/cache"
 	"pass-it/server/models"
-	"strings"
+	"pass-it/server/templates"
 	"time"
 
+	"github.com/a-h/templ"
 	"github.com/google/uuid"
 )
 
@@ -23,41 +23,53 @@ func NewFetchRequestHandler(c cache.Cache[models.DefaultStoredData], p chan mode
 }
 
 func (h *FetchRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	defer log.Default().Println("Fetch request done")
 	// 👇👇
 	flusher, ok := w.(http.Flusher)
 	if !ok {
 		http.Error(w, "SSE not supported", http.StatusInternalServerError)
 		return
 	}
+	var rend = componentRenderer{
+		w: w,
+		f: flusher,
+		c: r.Context(),
+	}
+
 	id, _ := uuid.NewRandom()
 	idString := id.String()
 	w.Header().Set("Content-Type", "text/event-stream")
 
-	idMessage := formatEvent("id", idString)
-	w.Write([]byte(idMessage))
-	flusher.Flush()
+	log.Default().Printf("SSE ID: %s", idString)
+	if err := rend.renderComponentToSSE(templates.SessionCode(idString)); err != nil {
+		log.Default().Printf("Error %s", err)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
 	ch := make(chan struct {
 		string
 		bool
 	})
 
-	go waitForConfirmation(r.Context(), idString, h.payloadMessageChannel, ch)
 	timeout := time.AfterFunc(cache.DefaultTTL, func() {
+		rend.renderComponentToSSE(templates.Timeout())
+		log.Default().Println("Timeout")
 		ch <- struct {
 			string
 			bool
-		}{"Timeout", true}
+		}{"", true}
 	})
 	defer timeout.Stop()
+	
+	go waitForConfirmation(r.Context(), idString, h.payloadMessageChannel, ch)
 
 	for i := range ch {
+		log.Default().Printf("Confirmation: %s, %v\n", i.string, i.bool)
 		if i.bool {
 			return
 		}
-		priceMessage := formatEvent("confirmation", fmt.Sprintf("%s", i.string))
-		w.Write([]byte(priceMessage))
-		flusher.Flush()
+		rend.renderComponentToSSE(templates.Secret(i.string))
 	}
 }
 
@@ -65,6 +77,7 @@ func waitForConfirmation(context context.Context, id string, payloadInput chan m
 	string
 	bool
 }) {
+	defer log.Default().Println("Confirmation request done")
 	defer close(output)
 	for {
 		select {
@@ -82,36 +95,17 @@ func waitForConfirmation(context context.Context, id string, payloadInput chan m
 	}
 }
 
-func generateEvents(ctx context.Context, priceCh chan<- int) {
-	r := rand.New(rand.NewSource(time.Now().Unix()))
-
-	ticker := time.NewTicker(time.Second)
-
-outerloop:
-	for {
-		select {
-		case <-ctx.Done():
-			break outerloop
-		case <-ticker.C:
-			p := r.Intn(100)
-			priceCh <- p
-		}
-	}
-
-	ticker.Stop()
-
-	close(priceCh)
+type componentRenderer struct {
+	w http.ResponseWriter
+	f http.Flusher
+	c context.Context
 }
 
-func formatEvent(event string, data string) string {
-	lines := strings.Split(data, "\n")
+func (r *componentRenderer) renderComponentToSSE(c templ.Component) error {
+	r.w.Write([]byte("data:"))
 
-	sb := strings.Builder{}
+	defer r.f.Flush()
+	defer r.w.Write([]byte("\n\n"))
 
-	sb.WriteString(fmt.Sprintf("event: %s\n", event))
-	for _, l := range lines {
-		sb.WriteString(fmt.Sprintf("data: %s\n", l))
-	}
-	sb.WriteString("\n")
-	return sb.String()
+	return c.Render(r.c, r.w)
 }

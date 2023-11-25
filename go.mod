@@ -5,8 +5,9 @@ go 1.21.0
 require github.com/jellydator/ttlcache/v2 v2.11.1
 
 require (
+	github.com/a-h/templ v0.2.476 // indirect
 	github.com/gorilla/mux v1.8.1 // indirect
-	golang.org/x/net v0.0.0-20201021035429-f5854403a974 // indirect
+	golang.org/x/net v0.17.0 // indirect
 	gopkg.in/cenkalti/backoff.v1 v1.1.0 // indirect
 )
 

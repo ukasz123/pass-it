@@ -15,8 +15,10 @@ func main() {
 	var storeRequest = handlers.NewStoreRequestHandler(cache)
 	var fetchRequest = handlers.NewFetchRequestHandler(cache, payloadMessageChannel)
 	var confirmRequest = handlers.NewConfirmRequestHandler(cache, payloadMessageChannel)
+	var indexRequest = handlers.NewIndexRequestHandler()
 
 	r := mux.NewRouter()
+	r.Handle("/", indexRequest).Methods(http.MethodGet)
 	r.Handle("/store/{id}",storeRequest).Methods(http.MethodPut)
 	r.Handle("/store/{id}",confirmRequest).Methods(http.MethodPost)
 	r.Handle("/fetch", fetchRequest).Methods(http.MethodGet)

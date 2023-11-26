@@ -3,9 +3,9 @@ package handlers
 import (
 	"log"
 	"net/http"
-	"pass-it/cache"
-	"pass-it/crypto"
-	"pass-it/server/models"
+	"pass-it/internal/cache"
+	"pass-it/internal/crypto"
+	"pass-it/internal/server/models"
 
 	"github.com/gorilla/mux"
 )
@@ -14,7 +14,7 @@ type StoreRequestHandler struct {
 	cache cache.Cache[models.DefaultStoredData]
 }
 
-func NewStoreRequestHandler(c cache.Cache[models.DefaultStoredData]) *StoreRequestHandler {
+func NewStoreRequestHandler(c cache.Cache[models.DefaultStoredData]) http.Handler {
 	return &StoreRequestHandler{cache: c}
 }
 

@@ -2,13 +2,13 @@ package handlers
 
 import (
 	"net/http"
-	"pass-it/server/templates"
+	"pass-it/internal/server/templates"
 )
 
 type IndexRequestHandler struct {
 }
 
-func NewIndexRequestHandler() *IndexRequestHandler {
+func NewIndexRequestHandler() http.Handler {
 	return &IndexRequestHandler{}
 }
 

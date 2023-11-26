@@ -4,9 +4,9 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"pass-it/cache"
-	"pass-it/server/models"
-	"pass-it/server/templates"
+	"pass-it/internal/cache"
+	"pass-it/internal/server/models"
+	"pass-it/internal/server/templates"
 	"time"
 
 	"github.com/a-h/templ"
@@ -61,7 +61,7 @@ func (h *FetchRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) 
 		}{"", true}
 	})
 	defer timeout.Stop()
-	
+
 	go waitForConfirmation(r.Context(), idString, h.payloadMessageChannel, ch)
 
 	for i := range ch {

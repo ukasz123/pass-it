@@ -1,11 +1,11 @@
 package main
 
 import (
-	"net/http"
-	"pass-it/cache"
-	"pass-it/server/handlers"
-	"pass-it/server/models"
 	"github.com/gorilla/mux"
+	"net/http"
+	"pass-it/internal/cache"
+	"pass-it/internal/server/handlers"
+	"pass-it/internal/server/models"
 )
 
 func main() {
@@ -19,10 +19,9 @@ func main() {
 
 	r := mux.NewRouter()
 	r.Handle("/", indexRequest).Methods(http.MethodGet)
-	r.Handle("/store/{id}",storeRequest).Methods(http.MethodPut)
-	r.Handle("/store/{id}",confirmRequest).Methods(http.MethodPost)
+	r.Handle("/store/{id}", storeRequest).Methods(http.MethodPut)
+	r.Handle("/store/{id}", confirmRequest).Methods(http.MethodPost)
 	r.Handle("/fetch", fetchRequest).Methods(http.MethodGet)
-	
 
 	http.ListenAndServe(":8080", r)
 }

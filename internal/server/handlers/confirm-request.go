@@ -4,27 +4,27 @@ import (
 	"encoding/base64"
 	"log"
 	"net/http"
-	"pass-it/cache"
-	"pass-it/crypto"
-	"pass-it/server/models"
+	"pass-it/internal/cache"
+	"pass-it/internal/crypto"
+	"pass-it/internal/server/models"
 
 	"github.com/gorilla/mux"
 )
 
-type ConfirmRequestHandler struct {
+type confirmRequestHandler struct {
 	cache               cache.Cache[models.DefaultStoredData]
 	confirmationChannel chan models.PayloadMessage[string, string]
 }
 
 func NewConfirmRequestHandler(cache cache.Cache[models.DefaultStoredData],
-	confirmationChannel chan models.PayloadMessage[string, string]) *ConfirmRequestHandler {
-	return &ConfirmRequestHandler{
+	confirmationChannel chan models.PayloadMessage[string, string]) http.Handler {
+	return &confirmRequestHandler{
 		cache:               cache,
 		confirmationChannel: confirmationChannel,
 	}
 }
 
-func (h *ConfirmRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h *confirmRequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["id"]
 	if !h.cache.Contains(id) {

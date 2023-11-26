@@ -1,7 +1,6 @@
 package main
 
 import (
-	"strings"
 	"crypto/rand"
 	"crypto/rsa"
 	"encoding/base64"
@@ -10,7 +9,8 @@ import (
 	"io"
 	"net/http"
 	"net/url"
-	"pass-it/crypto"
+	"pass-it/internal/crypto"
+	"strings"
 
 	"github.com/google/uuid"
 )
